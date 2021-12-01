@@ -261,7 +261,7 @@ proc_data <- proc_data %>%
                                   p29d >=18 & p29d <= 24  ~ "1",
                                   p29e >=18 & p29e <= 24  ~ "1",
                                   p29f >=18 & p29f <=24 ~ "1",
-                                  TRUE ~ "0"), label = "Protesta disruptiva") 
+                                  TRUE ~ "0")) 
 
 # Etiqueta
 proc_data$disruptiva <- factor(proc_data$disruptiva,labels = c('No', 'Sí'))
@@ -279,7 +279,7 @@ proc_data <- proc_data %>%
                                 p29d >=25 & p29d <= 36  ~ "1",
                                 p29e >=25 & p29e <= 36  ~ "1",
                                 p29f >=25 & p29f <=36 ~ "1",
-                                TRUE ~ "0"), label = "Protesta violenta")  
+                                TRUE ~ "0"))  
 
 # Etiqueta
 proc_data$violenta <- factor(proc_data$violenta,labels = c('No', 'Sí'))

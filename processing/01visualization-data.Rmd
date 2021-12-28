@@ -41,14 +41,14 @@ klippy::klippy(position = c('bottom', 'right')) # chunks con botón de copiar
 # Introducción
 <div style="text-align: justify">
 
-El siguiente documento tiene por objetivo aportar en el manejo, operacionalización y visualización de variables de la base de datos del Observatorio de Conflictos del Centro de Estudios de Conflicto y Cohesion Social (COES), en la cual se registra información sobre acciones de protesta en Chile durante los años 2009-2019. Para estos fines se utilizan un conjunto de paquetes y comandos mínimos que permiten el manejo y análisis visual de los datos. Este documento se divide en dos grandes apartados: uno sobre Manejo y operacionalización de datos, y otro sobre Visualización de datos con _ggplot2_. 
+Este documento tiene por objetivo aportar en el manejo, operacionalización y visualización de variables de la base de datos del Observatorio de Conflictos del Centro de Estudios de Conflicto y Cohesión Social (COES), en la cual se registra información sobre acciones de protesta en Chile durante los años 2009-2019. Para estos fines se utilizan un conjunto de paquetes y comandos mínimos que permiten el manejo y análisis visual de los datos. Este documento se divide en dos grandes apartados: uno sobre manejo y operacionalización de datos, y otro sobre visualización de datos con _ggplot2_. 
 
 # Operacionalización y manejo de datos {#preparation}
 <div style="text-align: justify">
 
 ## Librerías principales a utilizar {.tabset .tabset-fade .tabset-pills}
 
-En esta sección comenzaremos cargando las librerías que nos servirán para la recodificación y creación de nuevas variables. Se recomienda el uso del paquete `pacman` para instalar y cargar librerías de forma más eficiente y actualizada. De todas maneras se incluye la opción para hacerlo sin `pacman`.
+En esta sección comenzaremos cargando las librerías que nos servirán para la recodificación y creación de nuevas variables. Se recomienda el uso del paquete `pacman` para instalar y cargar librerías de forma más eficiente y actualizada. Para quienes deseen hacerlo sin `pacman` también se incluye la opción pero las librerías deben estar previamente instaladas mediante la función `install.packages()`.
 
 ### Con pacman 
 ```{r, echo=TRUE}
@@ -59,17 +59,16 @@ options(scipen=9999) # desactivar notacion cientifica
 
 # Cargar librerías
 if (!require("pacman")) install.packages("pacman") # Pacman para instalar y cargar librerías
-pacman::p_load(car,
-               tidyverse,
-               sjlabelled,
-               lubridate,
-               ggplot2,
-               sjmisc,
-               summarytools,
-               sjPlot,
-               RColorBrewer,
-               gridExtra,
-               plotly)
+pacman::p_load(car, # recodificacion de variables
+               tidyverse, # universo de funciones para manipular datos (dplyr)
+               sjlabelled, # etiquetar
+               ggplot2, # visualizar datos
+               sjmisc, # describir y explorar datos
+               summarytools, # manipular y resumir datos
+               sjPlot, # describir datos
+               RColorBrewer, # paleta colores
+               gridExtra, # unir graficos
+               plotly) # animar graficos
 
 ```
 
@@ -82,23 +81,22 @@ rm(list=ls())
 options(scipen=9999) # desactivar notacion cientifica
 
 # Cargar librerías
-library(car)
-library(tidyverse)
-library(sjlabelled)
-library(lubridate)
-library(ggplot2)
-library(sjmisc)
-library(summarytools)
-library(sjPlot)
-library(RColorBrewer)
-library(gridExtra)
-library(plotly)
+library(car) # recodificacion de variables
+library(tidyverse) # universo de funciones para manipular datos (dplyr)
+library(sjlabelled) # etiquetar
+library(ggplot2) # visualizar datos
+library(sjmisc) # describir y explorar datos
+library(summarytools) # manipular y resumir datos
+library(sjPlot) # describir datos
+library(RColorBrewer) # paleta colores
+library(gridExtra) # unir graficos
+library(plotly) # animar graficos
 
 ```
 
 ## Cargar datos desde repositorio Dataverse
 
-Cargamos la base de datos del Observatorio de Conflictos 2009-2019 disponible en el [Dataverse de Harvard](https://dataverse.harvard.edu/dataverse/coes_data_repository). La unidad de análisis de la base de datos son las `acciones contenciosas`, las cuales se definen como: *como la forma en la que un actor, grupo o movimiento social expresa un malestar colectivo, pacífica u hostilmente, frente a otro actor, grupo, movimiento, o instancia pública o privada, a través del despliegue de ciertas tácticas en el espacio público*.
+Cargamos la base de datos del Observatorio de Conflictos 2009-2019 disponible en el [Dataverse de Harvard](https://dataverse.harvard.edu/dataverse/coes_data_repository). La unidad de análisis de la base de datos son las `acciones contenciosas`, las cuales se definen como: "*la forma en la que un actor, grupo o movimiento social expresa un malestar colectivo, pacífica u hostilmente, frente a otro actor, grupo, movimiento, o instancia pública o privada, a través del despliegue de ciertas tácticas en el espacio público*".
 
 ```{r, echo=TRUE}
 
@@ -123,14 +121,14 @@ Para el desarrollo de este documento utilizaremos las siguientes variables:
 
 Las variables *p13a-d*, *p19a1-e1* y *p29a-f* son variables que contienen columnas múltiples, por ejemplo, en el caso de las tácticas puede suceder que exista una marcha, luego una barricada y finalmente enfrentamientos con carabineros, por lo que se hace necesario tener una serie de columnas que permita dar cuenta de esas diferencias. Asimismo, esta característica aplica para el caso de los grupos sociales y las demandas que también contienen más de una columna.
 
-Otro caso relevante es la variable *pb* que permite filtrar las radios nacionales (Radio Biobío - Radio Cooperativa), ya que la base de datos 2009-2019 no cuenta con información de estas radios para los años 2009-2011. Es relevante sacar estos medios para realizar el análisis para el total de años y para eliminar sesgos temporales asociados a la falta de información. 
+Otro caso relevante es la variable *pb* que permite filtrar las radios nacionales (Radio Biobío - Radio Cooperativa), ya que la base de datos 2009-2019 no cuenta con información de estas radios para los años 2009-2011. Es relevante filtrar estos medios para realizar análisis para el total de años y para eliminar sesgos temporales asociados a la falta de información. 
 
 ```{r, echo=TRUE}
 
 # Selección de variables
 proc_data <- acciones_de_protesta_2009_2019 %>% 
   dplyr::select(pb, p5c, p6, p13a, p13b, p13c, p13d, p19a1, p19b1,      
-                p19c1, p19d1, p19e1, p21, p25, p27, p29a, p29b, p29c, p29d, p29e, p29f)
+                p19c1, p19d1, p19e1, p21, p25, p27, p29a, p29b, p29c, p29d, p29e, p29f) # funcion select del paquete dplyr
 
 rm(acciones_de_protesta_2009_2019) # removemos base original
 
@@ -139,21 +137,21 @@ rm(acciones_de_protesta_2009_2019) # removemos base original
 ```{r, echo=TRUE}
 
 ## Región
-proc_data$region <- factor(proc_data$p6,labels = c('Tarapacá', 'Antofagasta', 'Atacama','Coquimbo','Valparaíso','O´Higgins','Maule','Biobío','Araucanía','Los Lagos','Aysén','Magallanes','Metropolitana','Los Ríos','Arica y Parinacota','Ñuble'))
+proc_data$region <- factor(proc_data$p6,labels = c('Tarapacá', 'Antofagasta', 'Atacama','Coquimbo','Valparaíso','O´Higgins','Maule','Biobío','Araucanía','Los Lagos','Aysén','Magallanes','Metropolitana','Los Ríos','Arica y Parinacota','Ñuble')) # recodificamos los nombres de las regiones y pasamos la variable a factor
 
 ## Macrozonas
-proc_data <- proc_data %>% mutate(macrozona = case_when(p6 %in% c(15, 1:4) ~ "Norte",
+proc_data <- proc_data %>% mutate(macrozona = case_when(p6 %in% c(15, 1:4) ~ "Norte", 
                                 p6 %in% c(5:7, 16) ~ "Centro",
                                 p6 %in% c(13) ~ "RM",
-                                p6 %in% c(8:12, 14) ~ "Sur"))
+                                p6 %in% c(8:12, 14) ~ "Sur")) # creamos nueva variable "macrozona" mediante la funcion mutate del paquete dplyr. Se aplican distintas condiciones a la variable original para crear nuevos valores en la nueva variable
 
 ## Años
 proc_data$ano <- car::recode(proc_data$p5c, recodes = c("9 = 2009; 10 = 2010; 11 = 2011; 
                                                         12 =2012; 13 = 2013; 14 = 2014; 15 = 2015;
-                                                        16 = 2016; 17 = 2017; 18 = 2018; 19 = 2019"), as.numeric = T)
+                                                        16 = 2016; 17 = 2017; 18 = 2018; 19 = 2019"), as.numeric = T) # recodificamos valores de los años y pasamos la variable a numerica
 
 # Etiquetas
-proc_data$region <- sjlabelled::set_label(proc_data$region, label = c('Regiones'))
+proc_data$region <- sjlabelled::set_label(proc_data$region, label = c('Regiones')) # etiquetamos 
 proc_data$macrozona <- sjlabelled::set_label(proc_data$macrozona, label = c('Macrozonas'))
 proc_data$ano <- sjlabelled::set_label(proc_data$ano, label = c('Año'))
 
@@ -168,15 +166,16 @@ De acuerdo con las indicaciones del [libro de códigos](https://dataverse.harvar
 ```{r, echo=TRUE}
 # Educación
 proc_data <- proc_data %>%
-    mutate(educacion = case_when(p19a1 >=100 & p19a1 < 200 ~ "1",
+    mutate(educacion = case_when(p19a1 >=100 & p19a1 < 200 ~ "1", # creamos una variable nueva a partir de ciertas condiciones a p19a1-e1
                                  p19b1 >=100 & p19b1 < 200 ~ "1", 
                                  p19c1 >=100  & p19c1  < 200 ~ "1",
                                  p19d1 >=100 & p19d1  < 200 ~ "1",
                                  p19e1 >=100  & p19e1  < 200~ "1",
-                                 TRUE ~ "0")) 
+                                 TRUE ~ "0")) # todo lo demás devuelveme valor cero
+
+proc_data$educacion <- factor(proc_data$educacion,labels = c('No', 'Sí')) # recodificamos valores y pasamos la variable a factor
 
 # Etiqueta
-proc_data$educacion <- factor(proc_data$educacion,labels = c('No', 'Sí')) 
 proc_data$educacion <- sjlabelled::set_label(proc_data$educacion, label = c('Demanda - Educacional'))
 
 ```
@@ -192,8 +191,9 @@ proc_data <- proc_data %>%
                                 p19e1 >=200  & p19e1  < 300~ "1",
                                 TRUE ~ "0")) 
 
-# Etiqueta
 proc_data$indigena <- factor(proc_data$indigena,labels = c('No', 'Sí')) 
+
+# Etiqueta
 proc_data$indigena <- sjlabelled::set_label(proc_data$indigena, label = c('Demanda - Indígenas'))
 
 ```
@@ -209,8 +209,9 @@ proc_data <- proc_data %>%
                                p19e1 >=300  & p19e1  < 400~ "1",
                                TRUE ~ "0")) 
 
-# Etiqueta
 proc_data$laboral <- factor(proc_data$laboral,labels = c('No', 'Sí'))
+
+# Etiqueta
 proc_data$laboral <- sjlabelled::set_label(proc_data$laboral, label = c('Demanda - Laborales'))
 
 ```
@@ -226,8 +227,9 @@ proc_data <- proc_data %>%
                              p19e1 >=600  & p19e1  < 700~ "1",
                              TRUE ~ "0")) 
 
-# Etiqueta
 proc_data$salud <- factor(proc_data$salud,labels = c('No', 'Sí'))
+
+# Etiqueta
 proc_data$salud <- sjlabelled::set_label(proc_data$salud, label = c('Demanda - Salud'))
 
 ```
@@ -245,8 +247,9 @@ proc_data <- proc_data %>%
                                 p29f >=1 & p29f <=17 ~ "1",
                                 TRUE ~ "0"))
 
-# Etiqueta
 proc_data$pacifica <- factor(proc_data$pacifica,labels = c('No', 'Sí'))
+
+# Etiqueta
 proc_data$pacifica <- sjlabelled::set_label(proc_data$pacifica, label = c('Táctica - Pacífica'))
 
 ```
@@ -263,8 +266,9 @@ proc_data <- proc_data %>%
                                   p29f >=18 & p29f <=24 ~ "1",
                                   TRUE ~ "0")) 
 
-# Etiqueta
 proc_data$disruptiva <- factor(proc_data$disruptiva,labels = c('No', 'Sí'))
+
+# Etiqueta
 proc_data$disruptiva <- sjlabelled::set_label(proc_data$disruptiva, label = c('Táctica - Disruptiva'))
 
 ```
@@ -281,8 +285,9 @@ proc_data <- proc_data %>%
                                 p29f >=25 & p29f <=36 ~ "1",
                                 TRUE ~ "0"))  
 
-# Etiqueta
 proc_data$violenta <- factor(proc_data$violenta,labels = c('No', 'Sí'))
+
+# Etiqueta
 proc_data$violenta <- sjlabelled::set_label(proc_data$violenta, label = c('Táctica - Violenta'))
 
 ```
@@ -298,8 +303,9 @@ proc_data <- proc_data %>%
                                     p13d >=12 & p13d <= 15  ~ "1",
                                     TRUE ~ "0"))  
 
-# Etiqueta 
 proc_data$trabajadores <- factor(proc_data$trabajadores,labels = c('No', 'Sí'))
+
+# Etiqueta
 proc_data$trabajadores <- sjlabelled::set_label(proc_data$trabajadores, label = c('Grupos social - Trabajadores'))
 
 ```
@@ -314,8 +320,9 @@ proc_data <- proc_data %>%
                                    p13d >=9 & p13d <= 11  ~ "1",
                                    TRUE ~ "0"))
 
-# Etiqueta
 proc_data$estudiantes <- factor(proc_data$estudiantes,labels = c('No', 'Sí'))
+
+# Etiqueta
 proc_data$estudiantes <- sjlabelled::set_label(proc_data$estudiantes, label = c('Grupos social - Estudiantes'))
 
 ```
@@ -343,7 +350,7 @@ Para asegurar la consistencia del análisis en el tiempo es relevante separar (f
 ```{r, echo=TRUE}
 
 # Filtramos los casos reportados por los medios presentes entre 2009-2019 
-proc_data <- proc_data %>% filter(pb == 0)
+proc_data <- proc_data %>% filter(pb == 0) # funcion filter del paquete dpplyr: "si pb es igual a 0 eliminalo y dejame con lo demas"
 
 # Seleccionamos variables para visualización
 data <- proc_data%>% 
@@ -363,7 +370,7 @@ Para finalizar esta sección y antes de comenzar con la visualización mediante 
 
 st_css() # Alinear descriptivos dentro de summarytools
 
-print(dfSummary(data, varnumbers = F, headings = F, valid.col = F, na.col = F, style = "grid", split.cells = 3), method = "render")
+print(dfSummary(data, varnumbers = F, headings = F, valid.col = F, na.col = F, style = "grid", split.cells = 3), method = "render") # "imprimimos" en el viewer la tabla 
 
 ```
 
@@ -379,21 +386,21 @@ Para conocer la frecuencia de acciones contenciosas entre los años 2009-2019 ha
 ### Frecuencias
 ```{r echo=TRUE}
 
-g1 <- data %>% mutate(ano = as.factor(data$ano)) %>% 
-  group_by(ano) %>% 
-  summarise(porcentaje = n()) %>% 
-  ggplot(aes(y = porcentaje, x = ano, label = as.character(scales::percent(porcentaje,   accuracy = .1))))+ 
-  geom_col(fill="#440154FF", position= 'dodge2') +
+g1 <- data %>% mutate(ano = as.factor(data$ano)) %>% # convertimos a factor variable año
+  group_by(ano) %>% # agrupamos por año
+  summarise(porcentaje = n()) %>% # contamos la frecuencia de casos por año
+  ggplot(aes(y = porcentaje, x = ano, label = as.character(scales::percent(porcentaje, accuracy = .1))))+ # indicar el contenido del gráfico: ejes y escala del eje y en frecuencias
+  geom_col(fill="#440154FF", position= 'dodge2') + # indicar geometria o forma del grafico geom_col. fill para indicar color. 'dodge2' para formato side-to-side
   labs(title = 'Cantidad de acciones contenciosas según año', 
        y = 'Frecuencia de eventos', 
        x = 'Año',
-       caption = 'Fuente: Elaboración propia en base a Observatorio de Conflictos 2009-2019')+
+       caption = 'Fuente: Elaboración propia en base a Observatorio de Conflictos 2009-2019') + # etiquetas titulo, ejes y fuente
   geom_text(aes(label = porcentaje), vjust = -0.8,
             position = position_dodge(width = .9),
-            size= 3)+
-  theme_bw()+ 
-  coord_cartesian(ylim=c(0,5000))+
-  theme(axis.title = element_text(), text = element_text(size = 12))
+            size= 3)+ #etiquetas por sobre cada barra
+  theme_bw()+ # indicar tema
+  coord_cartesian(ylim=c(0,5000))+ # limites del eje y 0 a 5000
+  theme(axis.title = element_text(), text = element_text(size = 12)) # tamaño texto
 
 g1
 ```
@@ -403,7 +410,7 @@ g1
 g2 <- data %>% mutate(ano = as.factor(data$ano)) %>% 
   group_by(ano) %>% 
   summarise(porcentaje = n()) %>% 
-  mutate(prop = prop.table(porcentaje)) %>%
+  mutate(prop = prop.table(porcentaje)) %>% # calculamos proporciones a partir de frecuencias por año
   ggplot(aes(y = prop, x = ano, label = as.character(scales::percent(prop, accuracy = .1))))+
   geom_col(fill="#414487FF", position= 'dodge2') +
   labs(title = 'Porcentaje de acciones contenciosas según año', 
@@ -413,7 +420,7 @@ g2 <- data %>% mutate(ano = as.factor(data$ano)) %>%
   geom_text(vjust = -0.8,
             position = position_dodge(width = .9),
             size= 3)+
-  scale_y_continuous(labels = scales::percent) +  
+  scale_y_continuous(labels = scales::percent) + # escala eje y en porcentajes 
    theme_bw() + 
   coord_cartesian(ylim=c(0,0.3)) + 
   theme(axis.title = element_text(), text = element_text(size = 12))
@@ -429,21 +436,22 @@ g2
 g3 <- data %>% group_by(region) %>% 
   summarise(porcentaje = n()) %>% 
   mutate(prop = prop.table(porcentaje)) %>% 
-  mutate(region = fct_reorder(region, prop)) %>% 
+  mutate(region = fct_reorder(region, prop)) %>% # reordenamos valores de mayor a menor por región
   ggplot(aes(x = region, y = prop, fill = region, label = scales::percent(prop, accuracy = .1))) +
-  geom_bar(stat="identity", width=0.8, position = "dodge") +
+  geom_bar(stat="identity", width=0.8, position = "dodge") + # stat="identity" para indicar que use los valores del eje y en la base de datos
    geom_text(position = position_dodge2(width = .9),    
               vjust = 0.35,
               hjust = -0.8,
               size = 3) + 
-  scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) +
-  scale_fill_viridis_d(option = "viridis") + 
-  theme_bw() +  coord_flip(ylim =c(0,0.3)) +
+  scale_y_continuous(labels=function(x) format(x, big.mark = ".", scientific = FALSE)) + # indicar scala eje y continua
+  scale_fill_viridis_d(option = "viridis") + # colores para regiones 
+  theme_bw() +  
+  coord_flip(ylim =c(0,0.3)) +
   labs(title = 'Porcentaje de acciones contenciosas según región', 
        y = 'Porcentaje de eventos', 
        x = 'Regiones',
-       caption = 'Fuente: Elaboración propia en base a Observatorio de Conflictos 2009-2019')+
-  labs(fill = "Regiones") +
+       caption = 'Fuente: Elaboración propia en base a Observatorio de Conflictos 2009-2019',
+       fill = 'Regiones')+
   theme(axis.title = element_text(), text = element_text(size = 12))
 
 g3
@@ -456,8 +464,9 @@ Para conocer la cantidad de tácticas pácificas, disruptivas y violentas emplea
 
 ```{r echo=TRUE}
 
-g4 <- data %>% group_by(macrozona) %>% 
-  count(pacifica) %>% mutate(prop = prop.table(n)) %>% 
+g4 <- data %>% group_by(macrozona) %>% # agrupamos por macrozona
+  count(pacifica) %>% # contamos la cantidad de eventos con valor tactica "pacifica"
+  mutate(prop = prop.table(n)) %>% # calculamos proporciones
   ggplot(aes(x = pacifica, y = prop, fill = macrozona, label = scales::percent(prop, accuracy = .1))) +
   geom_bar(stat="identity", width=0.8, position = "dodge") +
    geom_text(position = position_dodge2(width = .9),    
@@ -465,14 +474,17 @@ g4 <- data %>% group_by(macrozona) %>%
               hjust = -0.8,
               size = 3)  +
   scale_fill_viridis_d(option = "viridis") + 
-  theme_bw() +  coord_flip(ylim =c(0,1)) + labs(title = 'Porcentaje de tácticas pacíficas según macrozona', 
+  theme_bw() +  
+  coord_flip(ylim =c(0,1)) + 
+  labs(title = 'Porcentaje de tácticas pacíficas según macrozona', 
        y = 'Porcentaje', 
-       x = 'Tácticas pacíficas')+
-  labs(fill = "Macrozonas") +
+       x = 'Tácticas pacíficas',
+       fill = 'Macrozonas')+
   theme(axis.title = element_text(), text = element_text(size = 12))
 
 g5 <- data %>% group_by(macrozona) %>% 
-  count(disruptiva) %>% mutate(prop = prop.table(n)) %>% 
+  count(disruptiva) %>% 
+  mutate(prop = prop.table(n)) %>% 
   ggplot(aes(x = disruptiva, y = prop, fill = macrozona, label = scales::percent(prop, accuracy = .1))) +
   geom_bar(stat="identity", width=0.8, position = "dodge") +
    geom_text(position = position_dodge2(width = .9),    
@@ -480,14 +492,17 @@ g5 <- data %>% group_by(macrozona) %>%
               hjust = -0.8,
               size = 3)  +
   scale_fill_viridis_d(option = "viridis") + 
-  theme_bw() + coord_flip(ylim =c(0,1)) + labs(title = 'Porcentaje de tácticas disruptivas según macrozona', 
+  theme_bw() + 
+  coord_flip(ylim =c(0,1)) + 
+  labs(title = 'Porcentaje de tácticas disruptivas según macrozona', 
        y = 'Porcentaje', 
-       x = 'Tácticas disruptivas')+
-  labs(fill = "Macrozonas") +
+       x = 'Tácticas disruptivas',
+       fill = 'Macrozonas')+
   theme(axis.title = element_text(), text = element_text(size = 12))
 
 g6 <- data %>% group_by(macrozona) %>% 
-  count(violenta) %>% mutate(prop = prop.table(n)) %>% 
+  count(violenta) %>% 
+  mutate(prop = prop.table(n)) %>% 
   ggplot(aes(x = violenta, y = prop, fill = macrozona, label = scales::percent(prop, accuracy = .1))) +
   geom_bar(stat="identity", width=0.8, position = "dodge") +
    geom_text(position = position_dodge2(width = .9),    
@@ -495,14 +510,16 @@ g6 <- data %>% group_by(macrozona) %>%
               hjust = -0.8,
               size = 3)  +
   scale_fill_viridis_d(option = "viridis") + 
-  theme_bw() +  coord_flip(ylim =c(0,1)) + labs(title = 'Porcentaje de tácticas violentas según macrozona', 
+  theme_bw() +  
+  coord_flip(ylim =c(0,1)) + 
+  labs(title = 'Porcentaje de tácticas violentas según macrozona', 
        y = 'Porcentaje', 
        x = 'Tácticas violentas',
-       caption = 'Fuente: Elaboración propia en base a Observatorio de Conflictos 2009-2019')+
-  labs(fill = "Macrozonas") +
+       caption = 'Fuente: Elaboración propia en base a Observatorio de Conflictos 2009-2019',
+       fill = 'Macrozonas')+
   theme(axis.title = element_text(), text = element_text(size = 12))
 
-grid.arrange(g4, g5, g6, nrow = 3)
+grid.arrange(g4, g5, g6, nrow = 3) # unir graficos. nrow indica separacion entre graficos
 
 ```
 
@@ -514,27 +531,36 @@ Primero, generamos un `data.frame` aparte que contenga la cantidad de eventos po
 
 ```{r echo=TRUE}
 
-df_ed <- data %>% filter(educacion == "Sí") %>% group_by(ano) %>% 
-  mutate(ano = as.numeric(ano)) %>% summarise(porcentaje = n()) %>% mutate(demanda = "educacion")
+df_ed <- data %>% filter(educacion == "Sí") %>% # filtramos por valor "Sí" en la variable
+  group_by(ano) %>% # agrupamos por año
+  mutate(ano = as.numeric(ano)) %>% # convertimos año a numerica
+  summarise(porcentaje = n()) %>% # contamos frecuencias
+  mutate(demanda = "educacion") # creamos variable y recodificamos valor con tipo caracter
 
-df_lab <- data %>% filter(laboral == "Sí") %>% group_by(ano) %>% 
-  mutate(ano = as.numeric(ano)) %>% summarise(porcentaje = n()) %>% 
+df_lab <- data %>% filter(laboral == "Sí") %>% 
+  group_by(ano) %>% 
+  mutate(ano = as.numeric(ano)) %>% 
+  summarise(porcentaje = n()) %>% 
   mutate(demanda = "laboral")
 
-df_sal <- data %>% filter(salud == "Sí") %>% group_by(ano) %>% 
-  mutate(ano = as.numeric(ano)) %>% summarise(porcentaje = n()) %>% 
+df_sal <- data %>% filter(salud == "Sí") %>% 
+  group_by(ano) %>% 
+  mutate(ano = as.numeric(ano)) %>% 
+  summarise(porcentaje = n()) %>% 
   mutate(demanda = "salud")
 
-df_ind <- data %>% filter(indigena == "Sí") %>% group_by(ano) %>% 
-  mutate(ano = as.numeric(ano)) %>% summarise(porcentaje = n()) %>% 
+df_ind <- data %>% filter(indigena == "Sí") %>% 
+  group_by(ano) %>% 
+  mutate(ano = as.numeric(ano)) %>% 
+  summarise(porcentaje = n()) %>% 
   mutate(demanda = "indigena")
 
-df <- rbind(df_ed, df_lab, df_sal, df_ind)
+df <- rbind(df_ed, df_lab, df_sal, df_ind) # unimos data.frames pegandolos hacia "abajo". Importante: las columnas deben ser iguales en nombre, orden y cantidad
 
-g7 <- ggplot(df) +
+g7 <- ggplot(df) + # especificamos datos
  aes(x = ano, y = porcentaje, colour = demanda) +
- geom_line() +
- geom_point() + 
+ geom_line() + # figura o geometria
+ geom_point() + # figura o geometria
   scale_x_continuous(breaks=seq(2009, 2019, 1)) +
   scale_color_viridis_d(option = "viridis") +
    labs(title = 'Evolución cantidad de acciones contenciosas por demanda',
@@ -547,7 +573,7 @@ g7 <- ggplot(df) +
             size= 3)+
   theme_bw()+
   coord_cartesian(ylim=c(0,2000))+
-  theme(legend.position = 'top', axis.title = element_text(), text = element_text(size = 12))
+  theme(legend.position = 'top', axis.title = element_text(), text = element_text(size = 12)) # legend.position para indicar posicion de la leyenda
 
 g7
 
@@ -561,23 +587,27 @@ La base de datos del observatorio también registra la presencia policial en los
 ### Presencia policial y acciones contenciosas
 ```{r echo=TRUE}
 
-df_pol <- data %>% group_by(ano) %>% filter(policial == "Sí") %>% summarise(porcentaje = n()) %>% 
-  mutate(prop_poli = prop.table(porcentaje)) %>% select(ano, prop_poli) # nos quedamos con el porcentaje por año de presencia policial
+df_pol <- data %>% group_by(ano) %>%  # agrupamos por año
+  filter(policial == "Sí") %>% # filtramos valor "Sí"
+  summarise(porcentaje = n()) %>% # contamos frecuencias
+  mutate(prop_poli = prop.table(porcentaje)) %>% # calculamos porcentajes
+  select(ano, prop_poli) # nos quedamos con el porcentaje por año de presencia policial
 
-df_n <- data %>% mutate(ano = as.factor(data$ano)) %>% 
-  group_by(ano) %>% 
-  summarise(porcentaje = n()) %>% 
-  mutate(prop_n = prop.table(porcentaje)) %>% select(ano, prop_n) # nos quedamos con el porcentaje de eventos por año
+df_n <- data %>% mutate(ano = as.factor(data$ano)) %>% # convertimos año a factor
+  group_by(ano) %>% # agrupamos por año
+  summarise(porcentaje = n()) %>% # contamos frecuencias
+  mutate(prop_n = prop.table(porcentaje)) %>% # calculamos porcentajes
+  select(ano, prop_n) # nos quedamos con el porcentaje de eventos por año
   
-df <- merge(df_pol, df_n, by = "ano") # unimos
+df <- merge(df_pol, df_n, by = "ano") # unimos a partir de una columna compartida en ambos data.frames o "llave" 
 
 g8 <- df %>% ggplot(aes(x = ano)) +
-  geom_col(aes(y = prop_n, label = as.character(scales::percent(prop_n, accuracy = .1)), fill = "#20A387FF")) +
-  geom_line(aes(y = prop_poli), stat = "identity", color = "black", size = 0.7) + 
-  scale_x_continuous(breaks=seq(2009, 2019, 1)) +
+  geom_col(aes(y = prop_n, label = as.character(scales::percent(prop_n, accuracy = .1)), fill = "#20A387FF")) + # grafico de barras
+  geom_line(aes(y = prop_poli), stat = "identity", color = "black", size = 0.7) + # grafico de lineas
+  scale_x_continuous(breaks=seq(2009, 2019, 1)) + # indicar limites de años y breaks de 1 año
    geom_text(aes(label = (round(prop_n, 3)), x = ano, y = prop_n), vjust = -0.8,
             position = position_dodge(width = .9),
-            size= 3) +
+            size= 3) + # redondeamos valores arriba de cada barra
    scale_y_continuous(labels = scales::percent) +  
    labs(title = 'Evolución acciones contenciosas y presencia policial', 
        y = 'Porcentaje', 
@@ -586,7 +616,7 @@ g8 <- df %>% ggplot(aes(x = ano)) +
    theme_bw() + 
   coord_cartesian(ylim=c(0,0.3)) + 
   theme(legend.position = 'top', axis.title = element_text(), text = element_text(size = 12))+
-  scale_fill_manual('', labels = 'Acciones contenciosas', values = "#20A387FF")
+  scale_fill_manual('', labels = 'Acciones contenciosas', values = "#20A387FF") # leyenda eje y
   
 g8
 
@@ -594,11 +624,17 @@ g8
 
 ### Presencia de heridos y muertos
 ```{r echo=TRUE}
-df_m <- data %>% group_by(ano) %>% filter(muertes == "Sí") %>% mutate(muertes = "Muertos") %>% select(ano, hm = muertes) # nos quedamos solo con la cantidad de muertes por año
+df_m <- data %>% group_by(ano) %>% # agrupamos por año
+  filter(muertes == "Sí") %>% # filtramos valor "Sí"
+  mutate(muertes = "Muertos") %>% # creamos variable y recodificamos valor con tipo caracter
+  select(ano, hm = muertes) # nos quedamos solo con la cantidad de muertes por año
 
-df_h <- data %>% group_by(ano) %>% filter(heridos == "Sí") %>% mutate(heridos = "Heridos") %>% select(ano, hm = heridos) # nos quedamos solo con la cantidad de heridos por año
+df_h <- data %>% group_by(ano) %>% # agrupamos por año
+  filter(heridos == "Sí") %>% # filtramos valor "Sí"
+  mutate(heridos = "Heridos") %>% # creamos variable y recodificamos valor con tipo caracter
+  select(ano, hm = heridos) # nos quedamos solo con la cantidad de heridos por año
 
-df_hm <- rbind(df_h, df_m) %>% count(hm) # unimos y calculamos frecuencias
+df_hm <- rbind(df_h, df_m) %>% count(hm) # unimos y contamos frecuencias
 
 g9 <- df_hm %>% 
 ggplot(aes(fill=hm, y= n, x=ano)) + 
@@ -626,14 +662,23 @@ g9
 Para finalizar, visualizaremos la evolución de participación de los grupos sociales que hemos codificado anteriormente, estos son: `trabajadores` y `estudiantes`. Primero crearemos `data.frames` respectivos para quedarnos con el porcentaje de respuestas _Sí_ para cada grupo social. Luego, unimos estos `data.frames` y hacemos un gráfico simple de líneas. Sin embargo, como **bonus track** haremos a este gráfico interactivo mediante la función _ggplotly_ del paquete `plotly`. 
 
 ```{r echo=TRUE}
-df_t <- data %>% group_by(ano) %>% filter(trabajadores == "Sí") %>% mutate(trabajadores = "Trabajadores") %>% select(ano, grupo = trabajadores, region)
+df_t <- data %>% group_by(ano) %>% # agrupamos por año
+  filter(trabajadores == "Sí") %>% # filtramos valor "Sí"
+  mutate(trabajadores = "Trabajadores") %>% # creamos variable y recodificamos valor con tipo caracter
+  select(ano, grupo = trabajadores, region) # nos quedamos solo los eventos donde hubo trabajadores por año y region
 
-df_e <- data %>% group_by(ano) %>% filter(estudiantes == "Sí") %>% mutate(estudiantes = "Estudiantes") %>% select(ano, grupo = estudiantes, region)
+df_e <- data %>% group_by(ano) %>% # agrupamos por año
+  filter(estudiantes == "Sí") %>% # filtramos valor "Sí"
+  mutate(estudiantes = "Estudiantes") %>% # creamos variable y recodificamos valor con tipo caracter
+  select(ano, grupo = estudiantes, region) # nos quedamos solo los eventos donde hubo estudiantes por año y region
 
-df_act <- rbind(df_t, df_e) %>% group_by(ano) %>% count(grupo) %>% mutate(prop = prop.table(n)) 
+df_act <- rbind(df_t, df_e) %>% # unimos data.frames
+  group_by(ano) %>% # agrupamos por año
+  count(grupo) %>% # contamos frecuencia de cada grupo
+  mutate(prop = prop.table(n)) # calculamos porcentajes
 
 
-g10 <- df_act %>% mutate(prop = round(prop, 2)) %>% 
+g10 <- df_act %>% mutate(prop = round(prop, 2)) %>% # redondeamos variable prop
   ggplot(aes(x = ano, y = prop, colour = grupo))+
   geom_line(size = 1)+
   geom_point() + 
@@ -643,12 +688,12 @@ g10 <- df_act %>% mutate(prop = round(prop, 2)) %>%
     y = 'Porcentaje',
     caption = 'Fuente: Elaboración propia en base a Observatorio de Conflictos 2009-2019') +
   scale_colour_manual(name="Grupo social", breaks=c("Estudiantes", "Trabajadores"),
-                      labels=c("Estudiantes", "Trabajadores"), values = c(Estudiantes = "#1D77E2", Trabajadores = "#c5305b")) + 
+                      labels=c("Estudiantes", "Trabajadores"), values = c(Estudiantes = "#1D77E2", Trabajadores = "#c5305b")) +  # etiquetas y colores para cada grupo
  scale_y_continuous(labels = scales::percent) +  
-   theme_bw() + 
-  coord_cartesian(ylim=c(0,1)) + 
-   theme(legend.position = 'bottom', axis.title = element_text(), text = element_text(size = 10))
+ theme_bw() + 
+ coord_cartesian(ylim=c(0,1)) + 
+ theme(legend.position = 'bottom', axis.title = element_text(), text = element_text(size = 10))
   
-ggplotly(g10)
+ggplotly(g10) # animamos con ggplotly
 ```
 
